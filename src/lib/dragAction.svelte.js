@@ -13,6 +13,7 @@ export function dragAction(node, params) {
 
 	let positionType;
 	let clickX, clickY;
+	let clickTransform, clickScreenTransform, clickInverseTransform;
 	let offsetX, offsetY;
 	let isDragging = false;
 
@@ -21,10 +22,16 @@ export function dragAction(node, params) {
 		clickX = event.clientX;
 		clickY = event.clientY;
 		if (isSVGElement) {
-			const transform = node.getCTM();
-			offsetX = transform.e - clickX;
-			offsetY = transform.f - clickY;
-			console.log(transform, offsetX, offsetY);
+			clickScreenTransform = node.getScreenCTM();
+      // console.log(clickTransform, clickScreenTransform);
+			clickInverseTransform = clickScreenTransform.inverse();
+      clickInverseTransform.e = 0;
+      clickInverseTransform.f = 0;
+			clickTransform = node.getCTM().multiply(clickInverseTransform);
+
+			offsetX = clickTransform.e - clickX;
+			offsetY = clickTransform.f - clickY;
+			console.log(clickTransform, offsetX, offsetY);
 		} else {
 			offsetX =
 				node.getBoundingClientRect().left -
@@ -41,16 +48,25 @@ export function dragAction(node, params) {
 	}
 
 	function handleMouseMove(event) {
-		console.log('mousemove', event.clientX, event.clientY, offsetX, offsetY);
-		let newX = event.clientX + offsetX;
-		let newY = event.clientY + offsetY;
-		newX = Math.max(minX, Math.min(maxX, newX));
-		newY = Math.max(minY, Math.min(maxY, newY));
+		// console.log('mousemove', event.clientX, event.clientY, clickX, clickY);
 
+    let newX, newY;
 		if (isSVGElement) {
-			// For SVG elements, we need to set the transform attribute
+			let delta = document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGPoint();
+			delta.x = event.clientX - clickX;
+			delta.y = event.clientY - clickY;
+			let transformedDelta = delta.matrixTransform(clickInverseTransform);
+      newX = transformedDelta.x + clickScreenTransform.e*0 + clickTransform.e * 0.8;
+      newY = transformedDelta.y + clickScreenTransform.f*0 + clickTransform.f * 0.8;
+			newX = Math.max(minX, Math.min(maxX, newX));
+			newY = Math.max(minY, Math.min(maxY, newY));
 			node.setAttribute('transform', `translate(${newX}, ${newY})`);
 		} else {
+			newX = event.clientX + offsetX;
+			newY = event.clientY + offsetY;
+			newX = Math.max(minX, Math.min(maxX, newX));
+			newY = Math.max(minY, Math.min(maxY, newY));
+
 			node.style.left = `${newX}px`;
 			node.style.top = `${newY}px`;
 		}

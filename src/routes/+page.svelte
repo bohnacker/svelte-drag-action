@@ -44,6 +44,7 @@
 			width="500"
 			height="500"
 			style="border: 1px solid black;"
+			transform="rotate(0)"
 		>
 			<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
 			<g
@@ -56,6 +57,16 @@
 				}}
 			>
 				<rect x="150" y="150" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue" />
+				<text
+					x="200"
+					y="205"
+					text-anchor="middle"
+					fill="#fff9"
+					font-size="20px"
+					font-family="Arial, Helvetica, sans-serif"
+				>
+					Drag me
+				</text>
 			</g>
 		</svg>
 		<p>x:{x2}, y:{y2}</p>
