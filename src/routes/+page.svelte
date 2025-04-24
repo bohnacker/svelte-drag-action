@@ -44,7 +44,7 @@
 			width="500"
 			height="500"
 			style="border: 1px solid black;"
-			transform="rotate(0)"
+			transform="rotate(10)"
 		>
 			<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
 			<g

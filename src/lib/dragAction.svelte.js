@@ -13,20 +13,21 @@ export function dragAction(node, params) {
 
 	let positionType;
 	let clickX, clickY;
-	let clickPoint,
-		clickTransform,
-		clickScreenTransform,
-		clickInverseTransform,
-		clickParentTransform,
-		clickInverseTransformInverse;
+	let clickTransform, clickScreenTransform, clickParentTransform, clickElementTransform;
 	let offsetX, offsetY;
 	let isDragging = false;
 
-	function createPoint(x, y, matrix) {
+	function createPoint(x, y) {
 		let point = document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGPoint();
 		point.x = x;
 		point.y = y;
 		return point;
+	}
+	function removeTranslation(transform) {
+		// Remove translation from the transform matrix
+		transform.e = 0;
+		transform.f = 0;
+		return transform;
 	}
 
 	function handleMouseDown(event) {
@@ -37,10 +38,10 @@ export function dragAction(node, params) {
 		if (isSVGElement) {
 			clickScreenTransform = node.getScreenCTM();
 			clickParentTransform = node.parentElement.getScreenCTM();
-			// clickParentTransformInverse = clickParentTransform.inverse();
 			clickTransform = node.getCTM();
+      clickElementTransform = clickParentTransform.inverse().multiply(clickScreenTransform);
 
-			// console.log(clickScreenTransform);
+      // console.log(clickScreenTransform);
 			// clickScreenTransform.e = 0;
 			// clickScreenTransform.f = 0;
 			// clickInverseTransform = clickScreenTransform.inverse();
@@ -72,9 +73,7 @@ export function dragAction(node, params) {
 
 		let newX, newY;
 		if (isSVGElement) {
-			let inverseParentTransform = clickParentTransform.inverse();
-			inverseParentTransform.e = 0;
-			inverseParentTransform.f = 0;
+			let inverseParentTransform = removeTranslation(clickParentTransform.inverse());
 			// Calculate the vector from the click point to the current mouse position
 			let deltaX = event.clientX - clickX;
 			let deltaY = event.clientY - clickY;
@@ -122,6 +121,10 @@ export function dragAction(node, params) {
 		// Check if the element is an SVG element.
 		isSVGElement = node instanceof SVGElement;
 		if (isSVGElement) {
+			// let t = node.getScreenCTM();
+			// let p = node.parentElement.getScreenCTM();
+			// console.log(t, p);
+			// console.log(p.inverse().multiply(t));
 			// console.log(node.getCTM(), node.getScreenCTM());
 			// // Get actual transform of the SVG element
 			// transform = node.getScreenCTM();
@@ -148,20 +151,12 @@ export function dragAction(node, params) {
 			let x = node.getBoundingClientRect().left - node.parentElement.getBoundingClientRect().left;
 			let y = node.getBoundingClientRect().top - node.parentElement.getBoundingClientRect().top;
 			if (isSVGElement) {
-				const transform = node.getCTM();
-				let clickParentTransform = node.parentElement.getScreenCTM();
-				let inverseParentTransform = clickParentTransform.inverse();
-				inverseParentTransform.e = 0;
-				inverseParentTransform.f = 0;
-				let pos = createPoint(transform.e, transform.f).matrixTransform(inverseParentTransform);
-				x = pos.x;
-				y = pos.y;
-
-				console.log('node.getCTM()', node.getCTM());
-				console.log('node.getScreenCTM()', node.getScreenCTM());
-				console.log('node.parentElement.getScreenCTM()', node.parentElement.getScreenCTM());
-				console.log(node.getCTM().inverse().multiply(node.getScreenCTM()));
-				console.log(node.getScreenCTM().multiply(node.getCTM().inverse()));
+				let screenTransform = node.getScreenCTM();
+				let parentTransform = node.parentElement.getScreenCTM();
+				// calculate the transform of the element
+				let elementTransform = parentTransform.inverse().multiply(screenTransform);
+				x = elementTransform.e;
+				y = elementTransform.f;
 			}
 			callback({
 				x: x,
