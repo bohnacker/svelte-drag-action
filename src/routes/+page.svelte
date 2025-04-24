@@ -55,9 +55,9 @@
 					maxY: 300,
 					callback: positionHandler2
 				}}
-                transform="translate(150, 150)"
+                transform="translate(150, 150) scale(1)"
 			>
-				<rect x="0" y="0" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue" />
+				<rect x="0" y="0" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue"/>
 				<text
 					x="50"
 					y="55"

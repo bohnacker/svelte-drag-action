@@ -39,20 +39,7 @@ export function dragAction(node, params) {
 			clickScreenTransform = node.getScreenCTM();
 			clickParentTransform = node.parentElement.getScreenCTM();
 			clickTransform = node.getCTM();
-      clickElementTransform = clickParentTransform.inverse().multiply(clickScreenTransform);
-
-      // console.log(clickScreenTransform);
-			// clickScreenTransform.e = 0;
-			// clickScreenTransform.f = 0;
-			// clickInverseTransform = clickScreenTransform.inverse();
-			// clickInverseTransform.e = 0;
-			// clickInverseTransform.f = 0;
-			// clickTransform = node.getCTM();
-			//console.log(clickTransform, clickScreenTransform, clickInverseTransform);
-
-			// offsetX = clickTransform.e - clickX;
-			// offsetY = clickTransform.f - clickY;
-			// console.log(clickTransform, offsetX, offsetY);
+			clickElementTransform = clickParentTransform.inverse().multiply(clickScreenTransform);
 		} else {
 			offsetX =
 				node.getBoundingClientRect().left -
@@ -79,20 +66,18 @@ export function dragAction(node, params) {
 			let deltaY = event.clientY - clickY;
 			// Transform the delta vector to the coordinate system of the parent element
 			let transformedDelta = createPoint(deltaX, deltaY).matrixTransform(inverseParentTransform);
-			// Get the current position of the element relative to the parent element and transform it to the coordinate system of the parent element
-			let elementPosTransformed = createPoint(clickTransform.e, clickTransform.f).matrixTransform(
-				inverseParentTransform
-			);
-
-			// Add the transformed delta vector to the current position to get the new position
-			newX = elementPosTransformed.x + transformedDelta.x;
-			newY = elementPosTransformed.y + transformedDelta.y;
-			console.log(newX, newY);
-
+			// Add the transformed delta vector to the click position to get the new position
+			// console.log(clickElementTransform, transformedDelta);
+			newX = clickElementTransform.e + transformedDelta.x;
+			newY = clickElementTransform.f + transformedDelta.y;
+			// Constrain the new position to the given bounds
 			newX = Math.max(minX, Math.min(maxX, newX));
 			newY = Math.max(minY, Math.min(maxY, newY));
 
-			node.setAttribute('transform', `translate(${newX}, ${newY})`);
+			node.setAttribute(
+				'transform',
+				`matrix(${clickElementTransform.a} ${clickElementTransform.b} ${clickElementTransform.c} ${clickElementTransform.d} ${newX} ${newY})`
+			);
 		} else {
 			newX = event.clientX + offsetX;
 			newY = event.clientY + offsetY;
