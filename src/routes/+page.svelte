@@ -49,17 +49,18 @@
 			<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
 			<g
 				use:dragAction={{
-					minX: -150,
-					maxX: 150,
-					minY: -150,
-					maxY: 150,
+					minX: 0,
+					maxX: 300,
+					minY: 0,
+					maxY: 300,
 					callback: positionHandler2
 				}}
+                transform="translate(150, 150)"
 			>
-				<rect x="150" y="150" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue" />
+				<rect x="0" y="0" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue" />
 				<text
-					x="200"
-					y="205"
+					x="50"
+					y="55"
 					text-anchor="middle"
 					fill="#fff9"
 					font-size="20px"
