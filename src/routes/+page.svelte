@@ -19,18 +19,27 @@
 </script>
 
 <h1>Drag and drop action</h1>
-<p>(not to confuse with the standard draggable stuff)</p>
+<p>(not to confuse with the standard draggable attribute for a DOM element)</p>
 
 <div style="display: flex; gap: 20px;">
 	<div>
 		<div>DIV Test</div>
-		<div class="container">
-			<div
-				class="square"
-				style="transform: translate(0px, 0px);"
-				use:dragAction={{ minX: 0, maxX: 300, minY: 0, maxY: 300, callback: positionHandler1 }}
-			>
-				Drag me
+		<div style="widht: 400px; height: 400px;">
+			<!-- <div class="container" style="transform: matrix(1.2, 0.2, -1, 0.9, 0, 20);"> -->
+			<div class="container" style="transform: scale(75%) rotate(10deg);">
+				<div
+					class="square"
+					style="transform: translate(0px, 0px) rotate(0deg);"
+					use:dragAction={{
+						minX: -150,
+						maxX: 150,
+						minY: -150,
+						maxY: 150,
+						callback: positionHandler1
+					}}
+				>
+					Drag me
+				</div>
 			</div>
 		</div>
 		<p>x:{x1}, y:{y1}</p>
@@ -38,38 +47,42 @@
 
 	<div>
 		<div>SVG Test</div>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 400 400"
-			width="500"
-			height="500"
-			style="border: 1px solid black;"
-			transform="rotate(10)"
-		>
-			<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
-			<g
-				use:dragAction={{
-					minX: 0,
-					maxX: 300,
-					minY: 0,
-					maxY: 300,
-					callback: positionHandler2
-				}}
-                transform="translate(150, 150) scale(1)"
+		<div style="widht: 400px; height: 400px;">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 400 400"
+				width="300"
+				height="300"
+				style="border: 1px solid black;"
+				transform="translate(30 30) rotate(10) skewX(0) translate(0 20)"
 			>
-				<rect x="0" y="0" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue"/>
-				<text
-					x="50"
-					y="55"
-					text-anchor="middle"
-					fill="#fff9"
-					font-size="20px"
-					font-family="Arial, Helvetica, sans-serif"
+				<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
+				<g
+					use:dragAction={{
+						minX: -150,
+						maxX: 150,
+						minY: -150,
+						maxY: 150,
+						callback: positionHandler2
+					}}
+					transform="translate(0, 0) scale(1)"
+					style="cursor: grab;"
 				>
-					Drag me
-				</text>
-			</g>
-		</svg>
+					<rect x="150" y="150" width="100" height="100" rx="10" ry="10" style="fill:dodgerblue" />
+					<text
+						x="200"
+						y="205"
+						text-anchor="middle"
+						fill="#fff9"
+						font-size="20px"
+						font-family="Arial, Helvetica, sans-serif"
+						style="user-select: none;"
+					>
+						Drag me
+					</text>
+				</g>
+			</svg>
+		</div>
 		<p>x:{x2}, y:{y2}</p>
 	</div>
 </div>
