@@ -6,7 +6,8 @@ export function dragAction(node, params) {
 	let maxX = params?.maxX === undefined ? Infinity : params?.maxX;
 	let minY = params?.minY === undefined ? -Infinity : params?.minY;
 	let maxY = params?.maxY === undefined ? Infinity : params?.maxY;
-	let callback = params?.callback || (() => {});
+	let onchange = params?.onchange || (() => {});
+	let constraintFunction = params?.constraintFunction || false;
 
 	let isSVGElement;
 	let transform, inverseTransform;
@@ -109,8 +110,14 @@ export function dragAction(node, params) {
 			newX = clickElementTransform.e + transformedDelta.x;
 			newY = clickElementTransform.f + transformedDelta.y;
 			// Constrain the new position to the given bounds
-			newX = Math.max(minX, Math.min(maxX, newX));
-			newY = Math.max(minY, Math.min(maxY, newY));
+			if (constraintFunction) {
+				let res = constraintFunction(newX, newY);
+				newX = res.x;
+				newY = res.y;
+			} else {
+				newX = Math.max(minX, Math.min(maxX, newX));
+				newY = Math.max(minY, Math.min(maxY, newY));
+			}
 
 			node.setAttribute(
 				'transform',
@@ -126,14 +133,20 @@ export function dragAction(node, params) {
 			// Add the transformed delta vector to the click position to get the new position
 			newX = clickElementTransform.e + transformedDelta.x;
 			newY = clickElementTransform.f + transformedDelta.y;
-
-			newX = Math.max(minX, Math.min(maxX, newX));
-			newY = Math.max(minY, Math.min(maxY, newY));
+			// Constrain the new position to the given bounds
+			if (constraintFunction) {
+				let res = constraintFunction(newX, newY);
+				newX = res.x;
+				newY = res.y;
+			} else {
+				newX = Math.max(minX, Math.min(maxX, newX));
+				newY = Math.max(minY, Math.min(maxY, newY));
+			}
 
 			node.style.transform = `matrix(${clickElementTransform.a}, ${clickElementTransform.b}, ${clickElementTransform.c}, ${clickElementTransform.d}, ${newX}, ${newY})`;
 		}
 
-		callback({
+		onchange({
 			x: newX,
 			y: newY,
 			element: node
@@ -157,10 +170,10 @@ export function dragAction(node, params) {
 			originY = transform.f;
 		}
 
-		// if a callback is provided, calculate the position of the element and call the callback
-		if (callback) {
+		// if a onchange is provided, calculate the position of the element and call the onchange
+		if (onchange) {
 			let x = originX;
-      let y = originY;
+			let y = originY;
 			if (isSVGElement) {
 				let screenTransform = node.getScreenCTM();
 				let parentTransform = node.parentElement.getScreenCTM();
@@ -169,7 +182,7 @@ export function dragAction(node, params) {
 				x = elementTransform.e;
 				y = elementTransform.f;
 			}
-			callback({
+			onchange({
 				x: x,
 				y: y,
 				element: node

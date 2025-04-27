@@ -5,23 +5,30 @@
 	let y1 = $state(0);
 	let x2 = $state(0);
 	let y2 = $state(0);
+	let x3 = $state(0);
+	let y3 = $state(0);
 
-	function positionHandler1(position) {
+	function onchangeHandler1(event) {
 		// Handle the drag event here
-		x1 = position.x.toFixed(2);
-		y1 = position.y.toFixed(2);
+		x1 = event.x.toFixed(2);
+		y1 = event.y.toFixed(2);
 	}
-	function positionHandler2(position) {
+	function onchangeHandler2(event) {
 		// Handle the drag event here
-		x2 = position.x.toFixed(2);
-		y2 = position.y.toFixed(2);
+		x2 = event.x.toFixed(2);
+		y2 = event.y.toFixed(2);
+	}
+	function onchangeHandler3(event) {
+		// Handle the drag event here
+		x3 = event.x.toFixed(2);
+		y3 = event.y.toFixed(2);
 	}
 </script>
 
 <h1>Drag and drop action</h1>
 <p>(not to confuse with the standard draggable attribute for a DOM element)</p>
 
-<div style="display: flex; gap: 20px;">
+<div style="display: flex; gap: 20px; flex-wrap: wrap;">
 	<div>
 		<div>DIV Test</div>
 		<div style="widht: 400px; height: 400px;">
@@ -35,7 +42,7 @@
 						maxX: 150,
 						minY: -150,
 						maxY: 150,
-						callback: positionHandler1
+						onchange: onchangeHandler1
 					}}
 				>
 					Drag me
@@ -63,7 +70,7 @@
 						maxX: 150,
 						minY: -150,
 						maxY: 150,
-						callback: positionHandler2
+						onchange: onchangeHandler2
 					}}
 					transform="translate(0, 0) scale(1)"
 					style="cursor: grab;"
@@ -84,6 +91,42 @@
 			</svg>
 		</div>
 		<p>x:{x2}, y:{y2}</p>
+	</div>
+
+	<div>
+		<div>SVG Test with custom constraint</div>
+		<div style="">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="0 0 400 400"
+				width="300"
+				height="300"
+				style="border: 1px solid black;"
+			>
+				<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
+                <circle cx="200" cy="200" r="160" style="fill: #fff" />
+				<g
+					use:dragAction={{
+						onchange: onchangeHandler3,
+						constraintFunction: (x, y) => {
+							// Custom constraint logic
+							const distance = Math.sqrt(x * x + y * y);
+							if (distance > 130) {
+								const angle = Math.atan2(y, x);
+								x = Math.cos(angle) * 130;
+								y = Math.sin(angle) * 130;
+							}
+							return { x, y };
+						}
+					}}
+					transform="translate(0, 0) scale(1)"
+					style="cursor: grab;"
+				>
+					<circle cx="200" cy="200" r="30" style="fill:LimeGreen" />
+				</g>
+			</svg>
+		</div>
+		<p>x:{x3}, y:{y3}</p>
 	</div>
 </div>
 
