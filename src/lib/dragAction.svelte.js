@@ -2,6 +2,8 @@ export function dragAction(node, params) {
 	// console.log(node);
 
 	// Get optional parameters
+	let startX = params?.startX === undefined ? 0 : params?.startX;
+	let startY = params?.startY === undefined ? 0 : params?.startY;
 	let minX = params?.minX === undefined ? -Infinity : params?.minX;
 	let maxX = params?.maxX === undefined ? Infinity : params?.maxX;
 	let minY = params?.minY === undefined ? -Infinity : params?.minY;
@@ -10,11 +12,9 @@ export function dragAction(node, params) {
 	let constraintFunction = params?.constraintFunction || false;
 
 	let isSVGElement;
-	let transform, inverseTransform;
 
-	let positionType;
 	let clickX, clickY;
-	let clickTransform, clickScreenTransform, clickParentTransform, clickElementTransform;
+	let clickScreenTransform, clickParentTransform, clickElementTransform;
 	let offsetX, offsetY;
 	let isDragging = false;
 
@@ -65,6 +65,28 @@ export function dragAction(node, params) {
 			return transform;
 		}
 	}
+	// Helper function to set the position
+	function setPosition(newX, newY) {
+		// Constrain the new position to the given bounds
+		if (constraintFunction) {
+			let res = constraintFunction(newX, newY);
+			newX = res.x;
+			newY = res.y;
+		} else {
+			newX = Math.max(minX, Math.min(maxX, newX));
+			newY = Math.max(minY, Math.min(maxY, newY));
+		}
+		if (isSVGElement) {
+			// Set the position of the element using the transform matrix
+			node.setAttribute(
+				'transform',
+				`matrix(${clickElementTransform.a} ${clickElementTransform.b} ${clickElementTransform.c} ${clickElementTransform.d} ${newX} ${newY})`
+			);
+		} else {
+			// Set the position of the element using the transform matrix
+			node.style.transform = `matrix(${clickElementTransform.a}, ${clickElementTransform.b}, ${clickElementTransform.c}, ${clickElementTransform.d}, ${newX}, ${newY})`;
+		}
+	}
 
 	function handleMouseDown(event) {
 		event.preventDefault();
@@ -79,17 +101,9 @@ export function dragAction(node, params) {
 			clickScreenTransform = getScreenTransform(node);
 			clickParentTransform = getScreenTransform(node.parentElement);
 			clickElementTransform = getTransform(node);
-
-			offsetX =
-				node.getBoundingClientRect().left -
-				node.parentElement.getBoundingClientRect().left -
-				clickX;
-			offsetY =
-				node.getBoundingClientRect().top - node.parentElement.getBoundingClientRect().top - clickY;
 		}
 		isDragging = true;
 
-		// console.log('mousedown', clickX, clickY, offsetX, offsetY);
 		window.addEventListener('mousemove', handleMouseMove);
 		window.addEventListener('mouseup', handleMouseUp);
 	}
@@ -106,23 +120,10 @@ export function dragAction(node, params) {
 			// Transform the delta vector to the coordinate system of the parent element
 			let transformedDelta = createPoint(deltaX, deltaY).matrixTransform(inverseParentTransform);
 			// Add the transformed delta vector to the click position to get the new position
-			// console.log(clickElementTransform, transformedDelta);
 			newX = clickElementTransform.e + transformedDelta.x;
 			newY = clickElementTransform.f + transformedDelta.y;
-			// Constrain the new position to the given bounds
-			if (constraintFunction) {
-				let res = constraintFunction(newX, newY);
-				newX = res.x;
-				newY = res.y;
-			} else {
-				newX = Math.max(minX, Math.min(maxX, newX));
-				newY = Math.max(minY, Math.min(maxY, newY));
-			}
 
-			node.setAttribute(
-				'transform',
-				`matrix(${clickElementTransform.a} ${clickElementTransform.b} ${clickElementTransform.c} ${clickElementTransform.d} ${newX} ${newY})`
-			);
+      setPosition(newX, newY);
 		} else {
 			let inverseParentTransform = removeTranslation(clickParentTransform.inverse());
 			// Calculate the vector from the click point to the current mouse position
@@ -133,17 +134,8 @@ export function dragAction(node, params) {
 			// Add the transformed delta vector to the click position to get the new position
 			newX = clickElementTransform.e + transformedDelta.x;
 			newY = clickElementTransform.f + transformedDelta.y;
-			// Constrain the new position to the given bounds
-			if (constraintFunction) {
-				let res = constraintFunction(newX, newY);
-				newX = res.x;
-				newY = res.y;
-			} else {
-				newX = Math.max(minX, Math.min(maxX, newX));
-				newY = Math.max(minY, Math.min(maxY, newY));
-			}
 
-			node.style.transform = `matrix(${clickElementTransform.a}, ${clickElementTransform.b}, ${clickElementTransform.c}, ${clickElementTransform.d}, ${newX}, ${newY})`;
+      setPosition(newX, newY);
 		}
 
 		onchange({
@@ -164,13 +156,23 @@ export function dragAction(node, params) {
 		// Check if the element is an SVG element.
 		isSVGElement = node instanceof SVGElement;
 		if (isSVGElement) {
+			clickScreenTransform = node.getScreenCTM();
+			clickParentTransform = node.parentElement.getScreenCTM();
+			clickElementTransform = clickParentTransform.inverse().multiply(clickScreenTransform);
 		} else {
-			const transform = getTransform(node);
-			originX = transform.e;
-			originY = transform.f;
+			clickScreenTransform = getScreenTransform(node);
+			clickParentTransform = getScreenTransform(node.parentElement);
+			clickElementTransform = getTransform(node);
 		}
+    originX = clickElementTransform.e;
+    originY = clickElementTransform.f;
 
-		// if a onchange is provided, calculate the position of the element and call the onchange
+    // If a startX and startY are provided, set the starting position of the element
+    startX = startX || originX;
+    startY = startY || originY;
+    setPosition(startX, startY);
+
+		// if a onchange function is provided, calculate the position of the element and call the onchange
 		if (onchange) {
 			let x = originX;
 			let y = originY;

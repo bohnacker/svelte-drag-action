@@ -107,6 +107,8 @@
                 <circle cx="200" cy="200" r="160" style="fill: #fff" />
 				<g
 					use:dragAction={{
+                        startX: 200,
+                        startY: 200,
 						onchange: onchangeHandler3,
 						constraintFunction: (x, y) => {
 							// Custom constraint logic
