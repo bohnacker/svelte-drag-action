@@ -72,10 +72,10 @@ export function dragAction(node, params) {
 			let res = constraintFunction(newX, newY);
 			newX = res.x;
 			newY = res.y;
-		} else {
-			newX = Math.max(minX, Math.min(maxX, newX));
-			newY = Math.max(minY, Math.min(maxY, newY));
 		}
+		newX = Math.max(minX, Math.min(maxX, newX));
+		newY = Math.max(minY, Math.min(maxY, newY));
+
 		if (isSVGElement) {
 			// Set the position of the element using the transform matrix
 			node.setAttribute(
@@ -86,6 +86,10 @@ export function dragAction(node, params) {
 			// Set the position of the element using the transform matrix
 			node.style.transform = `matrix(${clickElementTransform.a}, ${clickElementTransform.b}, ${clickElementTransform.c}, ${clickElementTransform.d}, ${newX}, ${newY})`;
 		}
+		return {
+			x: newX,
+			y: newY
+		};
 	}
 
 	function handleMouseDown(event) {
@@ -112,31 +116,20 @@ export function dragAction(node, params) {
 		// console.log('mousemove', event.clientX, event.clientY, clickX, clickY);
 
 		let newX, newY;
-		if (isSVGElement) {
-			let inverseParentTransform = removeTranslation(clickParentTransform.inverse());
-			// Calculate the vector from the click point to the current mouse position
-			let deltaX = event.clientX - clickX;
-			let deltaY = event.clientY - clickY;
-			// Transform the delta vector to the coordinate system of the parent element
-			let transformedDelta = createPoint(deltaX, deltaY).matrixTransform(inverseParentTransform);
-			// Add the transformed delta vector to the click position to get the new position
-			newX = clickElementTransform.e + transformedDelta.x;
-			newY = clickElementTransform.f + transformedDelta.y;
+		let inverseParentTransform = removeTranslation(clickParentTransform.inverse());
+		// Calculate the vector from the click point to the current mouse position
+		let deltaX = event.clientX - clickX;
+		let deltaY = event.clientY - clickY;
+		// Transform the delta vector to the coordinate system of the parent element
+		// let transformedDelta = createPoint(deltaX, deltaY).matrixTransform(inverseParentTransform);
+		let transformedDelta = new DOMPoint(deltaX, deltaY).matrixTransform(inverseParentTransform);
+		// Add the transformed delta vector to the click position to get the new position
+		newX = clickElementTransform.e + transformedDelta.x;
+		newY = clickElementTransform.f + transformedDelta.y;
 
-      setPosition(newX, newY);
-		} else {
-			let inverseParentTransform = removeTranslation(clickParentTransform.inverse());
-			// Calculate the vector from the click point to the current mouse position
-			let deltaX = event.clientX - clickX;
-			let deltaY = event.clientY - clickY;
-			// Transform the delta vector to the coordinate system of the parent element
-			let transformedDelta = new DOMPoint(deltaX, deltaY).matrixTransform(inverseParentTransform);
-			// Add the transformed delta vector to the click position to get the new position
-			newX = clickElementTransform.e + transformedDelta.x;
-			newY = clickElementTransform.f + transformedDelta.y;
-
-      setPosition(newX, newY);
-		}
+		let res = setPosition(newX, newY);
+		newX = res.x;
+		newY = res.y;
 
 		onchange({
 			x: newX,
@@ -164,29 +157,19 @@ export function dragAction(node, params) {
 			clickParentTransform = getScreenTransform(node.parentElement);
 			clickElementTransform = getTransform(node);
 		}
-    originX = clickElementTransform.e;
-    originY = clickElementTransform.f;
+		originX = clickElementTransform.e;
+		originY = clickElementTransform.f;
 
-    // If a startX and startY are provided, set the starting position of the element
-    startX = startX || originX;
-    startY = startY || originY;
-    setPosition(startX, startY);
+		// If a startX and startY are provided, set the starting position of the element
+		startX = startX || originX;
+		startY = startY || originY;
+		let res = setPosition(startX, startY);
 
 		// if a onchange function is provided, calculate the position of the element and call the onchange
 		if (onchange) {
-			let x = originX;
-			let y = originY;
-			if (isSVGElement) {
-				let screenTransform = node.getScreenCTM();
-				let parentTransform = node.parentElement.getScreenCTM();
-				// calculate the transform of the element
-				let elementTransform = parentTransform.inverse().multiply(screenTransform);
-				x = elementTransform.e;
-				y = elementTransform.f;
-			}
 			onchange({
-				x: x,
-				y: y,
+				x: res.x,
+				y: res.y,
 				element: node
 			});
 		}

@@ -7,6 +7,7 @@
 	let y2 = $state(0);
 	let x3 = $state(0);
 	let y3 = $state(0);
+	let sliderValue1 = $state(0);
 
 	function onchangeHandler1(event) {
 		// Handle the drag event here
@@ -104,11 +105,11 @@
 				style="border: 1px solid black;"
 			>
 				<rect x="0" y="0" width="400" height="400" style="fill: #f0f0f0;" />
-                <circle cx="200" cy="200" r="160" style="fill: #fff" />
+				<circle cx="200" cy="200" r="160" style="fill: #fff" />
 				<g
 					use:dragAction={{
-                        startX: 200,
-                        startY: 200,
+						startX: 200,
+						startY: 200,
 						onchange: onchangeHandler3,
 						constraintFunction: (x, y) => {
 							// Custom constraint logic
@@ -129,6 +130,30 @@
 			</svg>
 		</div>
 		<p>x:{x3}, y:{y3}</p>
+	</div>
+
+	<div style="line-height: 1;">
+		<div>SPAN Test</div>
+		<!-- <div class="container" style="transform: matrix(1.2, 0.2, -1, 0.9, 0, 20);"> -->
+		<div style="width: 330px">Set the value by dragging the Number below. The constraintFunction is used to snap the values to full 10th.</div>
+		<div
+			style="position:relative; display: inline-block; user-select: none; cursor: grab; background-color: gold; border-radius: 3px; padding:5px; width: 60px; text-align:center; margin-top: 10px;"
+			use:dragAction={{
+				minX: 0,
+				maxX: 250,
+				minY: 0,
+				maxY: 0,
+				onchange: (event) => {
+					sliderValue1 = event.x.toFixed(0);
+				},
+                constraintFunction: (x, y) => {
+                    // Custom constraint logic
+                    return { x: Math.round(x / 10) * 10, y: 0 };
+                }
+			}}
+		>
+			{sliderValue1}
+		</div>
 	</div>
 </div>
 
