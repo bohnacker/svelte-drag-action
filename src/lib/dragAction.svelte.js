@@ -1,5 +1,4 @@
 export function dragAction(node, params) {
-	// console.log(node);
 
 	// Get optional parameters
 	let startX = params?.startX === undefined ? 0 : params?.startX;
@@ -13,6 +12,11 @@ export function dragAction(node, params) {
 
 	let isSVGElement;
 
+  let isTouch = false;
+  if (typeof window !== 'undefined') {
+    isTouch = 'ontouchstart' in window || navigator.maxTouchPoints;
+  }
+
 	let clickX, clickY;
 	let clickScreenTransform, clickParentTransform, clickElementTransform;
 	let offsetX, offsetY;
@@ -21,13 +25,6 @@ export function dragAction(node, params) {
 	// Remember the original position of the element as the translation of the node relative to its parent
 	let originX, originY;
 
-	// Helper function to create a point in the SVG coordinate system
-	function createPoint(x, y) {
-		let point = document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGPoint();
-		point.x = x;
-		point.y = y;
-		return point;
-	}
 	// Helper function to remove translation from a transform matrix
 	function removeTranslation(transform) {
 		transform.e = 0;
@@ -94,6 +91,9 @@ export function dragAction(node, params) {
 
 	function handleMouseDown(event) {
 		event.preventDefault();
+    if (isTouch) {
+      event = event.touches[0];
+    }
 		clickX = event.clientX;
 		clickY = event.clientY;
 
@@ -109,11 +109,18 @@ export function dragAction(node, params) {
 		isDragging = true;
 
 		window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleMouseMove);
 		window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchend', handleMouseUp);
 	}
 
 	function handleMouseMove(event) {
+    event.preventDefault();
 		// console.log('mousemove', event.clientX, event.clientY, clickX, clickY);
+    if (isTouch) {
+      event = event.touches[0];
+    }
+
 
 		let newX, newY;
 		let inverseParentTransform = removeTranslation(clickParentTransform.inverse());
@@ -140,7 +147,9 @@ export function dragAction(node, params) {
 
 	function handleMouseUp() {
 		window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('touchmove', handleMouseMove);
 		window.removeEventListener('mouseup', handleMouseUp);
+    window.removeEventListener('touchend', handleMouseUp);
 	}
 
 	$effect(() => {
@@ -151,6 +160,7 @@ export function dragAction(node, params) {
 		if (isSVGElement) {
 			clickScreenTransform = node.getScreenCTM();
 			clickParentTransform = node.parentElement.getScreenCTM();
+      // Get the transform of the element relative to its parent
 			clickElementTransform = clickParentTransform.inverse().multiply(clickScreenTransform);
 		} else {
 			clickScreenTransform = getScreenTransform(node);
@@ -175,11 +185,14 @@ export function dragAction(node, params) {
 		}
 		// Add event listeners
 		node.addEventListener('mousedown', handleMouseDown);
+    node.addEventListener('touchstart', handleMouseDown);
 
 		return () => {
 			// This will be done when the component is unmounted
 			node.removeEventListener('mousedown', handleMouseDown);
+      node.removeEventListener('touchstart', handleMouseDown);
 			window.removeEventListener('mousemove', handleMouseMove);
+
 			window.removeEventListener('mouseup', handleMouseUp);
 		};
 	});

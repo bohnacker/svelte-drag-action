@@ -53,7 +53,7 @@
 		<p>x:{x1}, y:{y1}</p>
 	</div>
 
-	<div>
+	<div style="margin-right: 100px;">
 		<div>SVG Test</div>
 		<div style="widht: 400px; height: 400px;">
 			<svg
@@ -133,7 +133,7 @@
 	</div>
 
 	<div style="line-height: 1;">
-		<div>SPAN Test</div>
+		<div style="margin-bottom:1em">Snapping Test</div>
 		<!-- <div class="container" style="transform: matrix(1.2, 0.2, -1, 0.9, 0, 20);"> -->
 		<div style="width: 330px">Set the value by dragging the Number below. The constraintFunction is used to snap the values to full 10th.</div>
 		<div
